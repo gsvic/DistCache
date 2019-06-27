@@ -6,7 +6,6 @@ import com.typesafe.config.ConfigFactory
 
 
 class Slave extends Actor with ActorLogging {
-
   private val cluster = Cluster(context.system)
   private val cache = new Cache(log)
 
@@ -35,21 +34,20 @@ class Slave extends Actor with ActorLogging {
       log.info(s"Total space: ${cache.getAvailableSpace}, Allocated space: ${cache.getCurrentSize}, " +
         s"Total elements: ${cache.totalElementsInCache}")
     }
+    case  GetAllRecords() => {
+      sender ! cache.getCacheContents.map(_._2).toSet
+    }
   }
-
 
 
 }
 
 object Slave {
-
   def main(args: Array[String]) {
     val config = ConfigFactory.parseString(
       s"""akka.remote.netty.tcp.port=${args(0)}""").withFallback(ConfigFactory.load())
 
-    // Create an Akka system
     val system = ActorSystem("ClusterSystem", config)
-    // Create an actor that handles cluster domain events
     val cache = system.actorOf(Props[Slave], name = "cache")
   }
 }

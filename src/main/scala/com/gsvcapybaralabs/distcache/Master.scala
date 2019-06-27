@@ -3,25 +3,27 @@ package com.gsvcapybaralabs.distcache
 import akka.pattern.ask
 
 import scala.concurrent.duration._
-import akka.cluster.{Cluster}
+import akka.cluster.Cluster
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.cluster.ClusterEvent.{MemberEvent, MemberUp, UnreachableMember}
 import akka.util.Timeout
+import com.gsvcapybaralabs.distcache.cachecontext.CacheContextImpl
 import com.typesafe.config.ConfigFactory
 
 case class SendToActor(msg: Any, actor: String)
 case class PutToCache(key: String, value: Any)
+case class PutBatchToCache(pairs: List[(String, Any)])
+case class GetAllRecords()
+case class Redistribute(nodeAddress: String, currentLocation: Double, locations: List[Double])
 case class GetFromCache(key: String)
 case class GetNodes()
 case class ListCacheContents()
 
 class Master extends Actor with ActorLogging {
-
   implicit val cluster = Cluster(context.system)
   implicit val timeout = Timeout(5 seconds)
+
   val cacheContext = new CacheContextImpl(cluster, context)
-
-
 
   override def preStart(): Unit = {
     cluster.subscribe(self, classOf[MemberEvent], classOf[UnreachableMember])
@@ -69,9 +71,6 @@ class Master extends Actor with ActorLogging {
 }
 
 object Master extends App {
-
-  //println(Math.abs("a".hashCode) % 5)
-
   override val args = Array[String]("2551")
 
   val config = ConfigFactory.parseString(

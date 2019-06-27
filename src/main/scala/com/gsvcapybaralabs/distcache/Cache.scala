@@ -1,6 +1,7 @@
 package com.gsvcapybaralabs.distcache
 
 import akka.event.LoggingAdapter
+import com.gsvcapybaralabs.distcache.eviction.{EvictionPolicy, LRU}
 
 import scala.collection.mutable
 
@@ -77,26 +78,4 @@ class Cache(logger: LoggingAdapter, policy: EvictionPolicy = LRU()) {
   def getAvailableSpace = availableSpace
   def getCurrentSize = currentSize
   def totalElementsInCache = map.size
-
-
-}
-
-trait EvictionPolicy {
-  def rank(cacheRecord: CacheRecord): Double
-}
-
-case class LRU() extends EvictionPolicy {
-  override def rank(cacheRecord: CacheRecord): Double = -cacheRecord.lastAccessed
-}
-
-case class MRU() extends EvictionPolicy {
-  override def rank(cacheRecord: CacheRecord): Double = cacheRecord.lastAccessed
-}
-
-case class LFU() extends EvictionPolicy {
-  override def rank(cacheRecord: CacheRecord): Double = -cacheRecord.numRequests
-}
-
-case class MFU() extends EvictionPolicy {
-  override def rank(cacheRecord: CacheRecord): Double = cacheRecord.numRequests
 }

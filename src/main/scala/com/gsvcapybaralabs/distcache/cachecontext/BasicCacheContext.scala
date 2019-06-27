@@ -1,20 +1,15 @@
-package com.gsvcapybaralabs.distcache
+package com.gsvcapybaralabs.distcache.cachecontext
 
 import akka.actor.ActorContext
 import akka.cluster.{Cluster, Member}
 import akka.pattern.ask
 import akka.util.Timeout
+import com.gsvcapybaralabs.distcache.{GetFromCache, PutToCache}
 
 import scala.concurrent.duration._
 import scala.collection.mutable
 import scala.collection.immutable
 import scala.concurrent.Await
-
-trait CacheContext{
-  def putToCache(key: String, value: Any): String
-  def getFromCache(key: String): Any
-  def findNode(key: String): Int
-}
 
 abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) extends CacheContext {
   implicit val timeout = Timeout(20 seconds)
@@ -32,6 +27,7 @@ abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) e
 
   def putToCache(key: String, value: Any): String = {
     val nodeId = this.findNode(key)
+
     val nodeAddress = this.idToMember.get(nodeId) match {
       case Some(member) => member.address + "/user/cache"
       case _ => throw new Exception()
@@ -58,10 +54,12 @@ abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) e
     return res
   }
 
-  def memberUp(member: Member): Unit = {
+  def memberUp(member: Member): Int = {
     val nodeId = getId
     this.idToMember.put(nodeId, member)
     this.elementsPerNode.put(nodeId, 0)
+
+    nodeId
   }
 
   def getNodes: immutable.SortedSet[Member] = {
