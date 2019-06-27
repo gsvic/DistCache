@@ -12,6 +12,7 @@ import com.typesafe.config.ConfigFactory
 
 case class SendToActor(msg: Any, actor: String)
 case class PutToCache(key: String, value: Any)
+case class EvictFromCache(key: String)
 case class PutBatchToCache(pairs: List[(String, Any)])
 case class GetAllRecords()
 case class Redistribute(nodeAddress: String, currentLocation: Double, locations: List[Double])
@@ -44,6 +45,12 @@ class Master extends Actor with ActorLogging {
     case GetFromCache(key) => {
       log.info(s"Requesting key $key from cache")
       val res = this.cacheContext.getFromCache(key)
+
+      log.info(s"Got $res for key $key")
+    }
+    case EvictFromCache(key) => {
+      log.info(s"Evicting key $key from cache")
+      val res = this.cacheContext.evictFromCache(key)
 
       log.info(s"Got $res for key $key")
     }
@@ -95,6 +102,10 @@ object Master extends App {
       case "get" => {
         val key = prepareGetRequest
         cache ? GetFromCache(key)
+      }
+      case "evict" => {
+        val key = prepareGetRequest
+        cache ? EvictFromCache(key)
       }
       case "nodes" => {
         cache ? GetNodes()

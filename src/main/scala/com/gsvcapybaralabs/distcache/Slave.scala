@@ -28,6 +28,21 @@ class Slave extends Actor with ActorLogging {
         }
       }
     }
+    case EvictFromCache(k) => {
+      log.info(s"Received eviction request for key ${k}")
+      cache.get(k) match {
+        case Some(value) => {
+          log.info(s"Found key $k in cache, evicting it")
+          cache.evict(k)
+          sender ! true
+        }
+        case _ => {
+          log.info(s"Did not found key $k in cache")
+          sender ! false
+        }
+      }
+
+    }
     case ListCacheContents() => {
       log.info("Listing cache contents")
       cache.getCacheContents.toList.foreach(element => log.info(element.toString()))

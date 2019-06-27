@@ -4,7 +4,7 @@ import akka.actor.ActorContext
 import akka.cluster.{Cluster, Member}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.gsvcapybaralabs.distcache.{GetFromCache, PutToCache}
+import com.gsvcapybaralabs.distcache.{EvictFromCache, GetFromCache, PutToCache}
 
 import scala.concurrent.duration._
 import scala.collection.mutable
@@ -49,6 +49,19 @@ abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) e
     }
 
     val future = ask(actorContext.actorSelection(nodeAddress), GetFromCache(key))
+    val res = Await.result(future, timeout.duration)
+
+    return res
+  }
+
+  def evictFromCache(key: String): Any = {
+    val nodeId = this.findNode(key)
+    val nodeAddress = this.idToMember.get(nodeId) match {
+      case Some(member) => member.address + "/user/cache"
+      case _ => throw new Exception()
+    }
+
+    val future = ask(actorContext.actorSelection(nodeAddress), EvictFromCache(key))
     val res = Await.result(future, timeout.duration)
 
     return res
