@@ -5,6 +5,12 @@ import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
 
 
+/***
+  * This class represents the Slave node and its functionality,
+  * defined in the receive function. receive function receives some message
+  * from the master, line GetFromCache, PutToCache and so on, handles it and
+  * returns the result back to the master.
+  */
 class Slave extends Actor with ActorLogging {
   private val cluster = Cluster(context.system)
   private val cache = new Cache(log)
@@ -57,6 +63,9 @@ class Slave extends Actor with ActorLogging {
 
 }
 
+/***
+  * The Slave's object and main method
+  */
 object Slave {
   def main(args: Array[String]) {
     val config = ConfigFactory.parseString(

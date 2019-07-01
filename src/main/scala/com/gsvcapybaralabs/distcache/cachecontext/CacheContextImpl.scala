@@ -2,17 +2,16 @@ package com.gsvcapybaralabs.distcache.cachecontext
 
 import akka.actor.ActorContext
 import akka.cluster.{Cluster, Member}
-import com.gsvcapybaralabs.distcache.GetAllRecords
 import com.gsvcapybaralabs.distcache.hashing.ConsistentHashing
-import akka.pattern.ask
 
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
-
-
-class CacheContextImpl(cluster: Cluster, actorContext: ActorContext) extends BasicCacheContext(cluster, actorContext) {
+/***
+  * Implementation of consistent hashing [[https://en.wikipedia.org/wiki/Consistent_hashing Consistent Hashing]]
+  * @param cluster
+  * @param actorContext
+  */
+class CacheContextImpl(cluster: Cluster, actorContext: ActorContext)
+  extends BasicCacheContext(cluster, actorContext) {
   val consistentHashing: ConsistentHashing = new ConsistentHashing()
 
   def findNodeOld(key: String): Int = {

@@ -11,6 +11,12 @@ import scala.collection.mutable
 import scala.collection.immutable
 import scala.concurrent.Await
 
+
+/**
+  * The basic cache context implementation
+  * @param cluster
+  * @param actorContext
+  */
 abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) extends CacheContext {
   implicit val timeout = Timeout(20 seconds)
 
@@ -25,7 +31,7 @@ abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) e
     tmp
   }
 
-  def putToCache(key: String, value: Any): String = {
+  override def putToCache(key: String, value: Any): String = {
     val nodeId = this.findNode(key)
 
     val nodeAddress = this.idToMember.get(nodeId) match {
@@ -41,7 +47,7 @@ abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) e
     nodeAddress
   }
 
-  def getFromCache(key: String): Any = {
+  override def getFromCache(key: String): Any = {
     val nodeId = this.findNode(key)
     val nodeAddress = this.idToMember.get(nodeId) match {
       case Some(member) => member.address + "/user/cache"
@@ -54,7 +60,7 @@ abstract class BasicCacheContext(cluster: Cluster, actorContext: ActorContext) e
     return res
   }
 
-  def evictFromCache(key: String): Any = {
+  override def evictFromCache(key: String): Any = {
     val nodeId = this.findNode(key)
     val nodeAddress = this.idToMember.get(nodeId) match {
       case Some(member) => member.address + "/user/cache"

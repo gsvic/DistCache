@@ -5,22 +5,37 @@ import com.gsvcapybaralabs.distcache.eviction.{EvictionPolicy, LRU}
 
 import scala.collection.mutable
 
+/***
+  * The cache implementation. This class is the main used by all slave nodes to maintain a local cache.
+  * @param logger The logger
+  * @param policy The eviction policy
+  */
 class Cache(logger: LoggingAdapter, policy: EvictionPolicy = LRU()) {
   private val availableSpace: Long = 3
   private val map: mutable.HashMap[String, CacheRecord] = new mutable.HashMap[String, CacheRecord]()
   private var currentSize: Long = 0
 
+  /**
+    * Gets an element from cache if exists
+    * @param key
+    * @return The element (if exists)
+    */
   def get(key: String): Option[Any] = {
     val cacheRecord: Option[CacheRecord] = map.get(key)
 
     cacheRecord match {
       case Some(cacheRecord) =>
         cacheRecord.updateLastAccess()
-      case _ =>
+      case _ => None
     }
     cacheRecord
   }
 
+  /***
+    * Puts an element to cache
+    * @param key The key
+    * @param value The value
+    */
   def put(key: String, value: Any): Unit = {
     val record = CacheRecord(key=key, value=value, System.currentTimeMillis())
 
@@ -34,6 +49,11 @@ class Cache(logger: LoggingAdapter, policy: EvictionPolicy = LRU()) {
     currentSize += record.sizeInBytes
   }
 
+  /**
+    * Evicts an element from cache (if exists)
+    * @param key The key
+    * @return true in case of the key is found and evicted, false otherwise
+    */
   def evict(key: String): Boolean = {
     logger.info(s"Evicting $key from cache")
 
@@ -50,6 +70,12 @@ class Cache(logger: LoggingAdapter, policy: EvictionPolicy = LRU()) {
     }
   }
 
+  /***
+    * This method is invoked to free some space from cache, when it exceeds the
+    * available capacity
+    * @param size The size to be freed
+    * @return true in case of success, false otherwise
+    */
   def freeSpace(size: Long): Boolean = {
     logger.info(s"Freeing $size of cache space with policy: ${policy}")
 

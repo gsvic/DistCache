@@ -3,7 +3,7 @@ package com.gsvcapybaralabs.distcache.eviction
 import com.gsvcapybaralabs.distcache.CacheRecord
 
 /**
-  * This class contains all the ranking functions for our available eviction policies
+  * Contains all the ranking functions for our available eviction policies
   */
 trait EvictionPolicy {
   def rank(cacheRecord: CacheRecord): Double

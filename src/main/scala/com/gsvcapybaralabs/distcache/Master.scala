@@ -20,6 +20,10 @@ case class GetFromCache(key: String)
 case class GetNodes()
 case class ListCacheContents()
 
+/***
+  * This class represents the Master node and its functionality,
+  * defined in the receive function
+  */
 class Master extends Actor with ActorLogging {
   implicit val cluster = Cluster(context.system)
   implicit val timeout = Timeout(5 seconds)
@@ -29,10 +33,14 @@ class Master extends Actor with ActorLogging {
   override def preStart(): Unit = {
     cluster.subscribe(self, classOf[MemberEvent], classOf[UnreachableMember])
   }
+
   override def postStop(): Unit = cluster.unsubscribe(self)
 
-
-
+  /***
+    * Receives a message from the client and performs the appropriate handling with the
+    * rest of the cluster nodes through the cacheContext defined above.
+    * @return The result, depending on the message received
+    */
   def receive = {
     case MemberUp(member) => {
       if (!member.address.toString.equals("akka.tcp://ClusterSystem@127.0.0.1:2551"))
@@ -68,15 +76,16 @@ class Master extends Actor with ActorLogging {
         context.actorSelection(m.address + "/user/cache") ? ListCacheContents()
       }
     }
-    case _ => {
-      //log.error("Invalid request")
-    }
+    case _ => {}
   }
 
 
 
 }
 
+/***
+  * The Slave's object and main method
+  */
 object Master extends App {
   override val args = Array[String]("2551")
 
@@ -118,7 +127,11 @@ object Master extends App {
 
   }
 
-
+  /**
+    * Prepares a PUT request by reading a key, value pair from stdin and
+    * return it as the result
+    * @return The key-value pair
+    */
   def preparePutRequest: (String, Any) = {
     print("Enter key name: ")
     val k = scala.io.StdIn.readLine()
@@ -128,6 +141,10 @@ object Master extends App {
     return (k, v)
   }
 
+  /**
+    * Prepares a GET request by reading a key pair and return it as the result
+    * @return The key
+    */
   def prepareGetRequest: (String) = {
     print("Enter key name: ")
     val k = scala.io.StdIn.readLine()

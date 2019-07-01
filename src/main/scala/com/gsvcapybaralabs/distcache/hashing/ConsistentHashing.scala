@@ -7,6 +7,9 @@ import com.gsvcapybaralabs.distcache.CacheNode
 import scala.collection.mutable
 import scala.util.Random
 
+/***
+  * The consistent hashing implementation
+  */
 class ConsistentHashing(){
   val REPLICATION: Int = 3
   val nodeRing: NodeRing = new NodeRing()
