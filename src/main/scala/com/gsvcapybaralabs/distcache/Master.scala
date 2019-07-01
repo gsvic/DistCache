@@ -87,7 +87,8 @@ class Master extends Actor with ActorLogging {
   * The Slave's object and main method
   */
 object Master extends App {
-  override val args = Array[String]("2551")
+  // Uncomment the following to run the master on port 2551 from an IDE
+  // Override val args = Array[String]("2551")
 
   val config = ConfigFactory.parseString(
     s"""akka.remote.netty.tcp.port=${args(0)}""").withFallback(ConfigFactory.load())
